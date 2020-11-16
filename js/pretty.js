@@ -9,6 +9,8 @@ var drawPlot = function(counties,target,
                          xScale,yScale)
 {
     target
+    .append("g")
+    .attr("id", "firstCircle")
     .selectAll("circle")
     .data(counties)
     .enter()
@@ -21,7 +23,7 @@ var drawPlot = function(counties,target,
     {
         return yScale(county.trumpPercentage);    
     })
-    .attr("r",2.5)
+    .attr("r",7)
     .attr("class",function(county)
     {
         if(county.lesscollege_pct<80)
@@ -70,24 +72,58 @@ var makeTranslateString = function(x,y)
 var drawAxes = function(graphDim,margins,
                          xScale,yScale)
 {
-   
  
-}
-
+    var xAxis = d3.axisTop(xScale);
+    
+    var axes = d3.select("#graph")
+        .append("g")
+    
+    axes.append("g")
+      .attr("transform", "translate("+(margins.left)+"," +(margins.top+graphDim.height)+")")
+        .call(xAxis)
+    
+    var yAxis = d3.axisLeft(yScale);
+    axes.append("g")
+        .attr("transform","translate("+0+","
+             +(0)+")")
+        .call(yAxis)
+} 
 
 //graphDim -object that stores dimensions of the graph area
 //margins - objedct that stores the size of the margins
-var drawLabels = function(graphDim,margins)
+var drawLabels = function(graphDim,margins,counties, xScale, yScale)
+{
+    console.log("drawLabels", "county", county);
+    
+    var labels=d3.select("#graph")
+    .append("g")
+    .attr("id", "labels")
+
+    .selectAll("text")
+    .data(counties)
+    .enter()
+    
+    labels.append("text")
+    .text(function(county){
+        
+    return   Number(county.white_pct).toFixed(0);})
+
+    .attr("x", function(county){ return xScale(county.white_pct)}) 
+          
+    .attr("y", function(county)
+          {
+        return yScale(county.trumpPercentage)})
+    .attr("text-anchor", "Middle")
+    
+    .attr("font-family", "sans-serif")
+    .attr("font-size", "11px")
+    .attr("fill", "yellow")
+    };
+
+var drawLegend = function(graphDim,margins,graph,counties)
 {
     
-}
-
-
-var drawLegend = function(graphDim,margins)
-{
-    
- 
-   var categories = [
+    var categories = [
        {
            class:"lessCollege",
            name:"Less College"
@@ -97,21 +133,46 @@ var drawLegend = function(graphDim,margins)
            name:"High unemployment"
        }
     ]
+    
+    var legend = d3.select("#graph")
+        .append("g")
+        .attr("id", "legends")
 
+        .attr("transform","translate("+
+              (margins.left+ 10) +","+
+             (margins.top+10)+")");
+    
+        
+    var entries =legend.selectAll("g")
+        .data(categories)
+        .enter()
+        .append("g")
+        .attr("transform",function(county,index)
+              {
+                return "translate(0,"+index*20+")";
+              })
+    
 
+    entries.append("circle")
+    .attr("class", function(catagory)
+    {   return  catagory.class})
+    .attr("r",7) 
     
+    entries.append("text")
     
+    .text(function(catagory){return catagory.name;})
+    .attr("x",15)
+    .attr("y",10)
     
-}
+          }
 
 //sets up several important variables and calls the functions for the visualization.
 var initGraph = function(counties)
 {
     //size of screen
-    var screen = {width:800,height:600}
+    var screen = {width:1200,height:600}
     //how much space on each side
-    var margins = {left:30,right:20,top:20,bottom:30}
-    
+    var margins = {left:20,right:30,top:20,bottom:30}
     
     
     var graph = 
@@ -127,7 +188,7 @@ var initGraph = function(counties)
     
     var target = d3.select("svg")
     .append("g")
-    .attr("id","#graph")
+    .attr("id","graph")
     .attr("transform",
           "translate("+margins.left+","+
                         margins.top+")");
@@ -143,15 +204,11 @@ var initGraph = function(counties)
     
     drawAxes(graph,margins,xScale,yScale);
     drawPlot(counties,target,xScale,yScale);
-    drawLabels(graph,margins);
+    drawLabels(graph,margins, counties, xScale, yScale);
     drawLegend(graph,margins);
-    
-    
-    
-    
-    
+       
 }
-
+    
 
 
 
